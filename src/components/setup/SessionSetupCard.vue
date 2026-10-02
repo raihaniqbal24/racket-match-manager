@@ -6,22 +6,18 @@ import { SPORTS } from '../../domain/sports'
 import type { Format, SportId } from '../../domain/types'
 import { useSessionStore } from '../../stores/session'
 import AppIcon from '../ui/AppIcon.vue'
+import BaseSelect, { type SelectOption } from '../ui/BaseSelect.vue'
 
 const store = useSessionStore()
 const { report } = useToast()
 const showNames = ref(false)
 const venue = computed(() => store.sport.venue.toLowerCase())
 
-// Selects are controlled: reset the element when the store rejects a change.
-function onSport(e: Event) {
-  const el = e.target as HTMLSelectElement
-  if (!report(store.setSport(el.value as SportId))) el.value = store.state.sport
-}
-
-function onFormat(e: Event) {
-  const el = e.target as HTMLSelectElement
-  if (!report(store.setFormat(el.value as Format))) el.value = store.state.format
-}
+const sportOptions: SelectOption[] = SPORTS.map((s) => ({ value: s.id, label: `${s.icon} ${s.label}` }))
+const formatOptions: SelectOption[] = [
+  { value: 'doubles', label: 'Doubles (4)' },
+  { value: 'singles', label: 'Singles (2)' },
+]
 
 function setCourts(n: number) {
   report(store.setCourts(n))
@@ -45,20 +41,27 @@ function onCourtName(i: number, e: Event) {
     <h2 class="card-title mb-4">Session setup</h2>
 
     <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
-      <label>
+      <div>
         <span class="field-label">Sport</span>
-        <select class="input" :value="store.state.sport" :disabled="store.hasStarted" @change="onSport">
-          <option v-for="s in SPORTS" :key="s.id" :value="s.id">{{ s.icon }} {{ s.label }}</option>
-        </select>
-      </label>
+        <BaseSelect
+          label="Sport"
+          :model-value="store.state.sport"
+          :options="sportOptions"
+          :disabled="store.hasStarted"
+          @change="report(store.setSport($event as SportId))"
+        />
+      </div>
 
-      <label>
+      <div>
         <span class="field-label">Format</span>
-        <select class="input" :value="store.state.format" :disabled="store.hasStarted" @change="onFormat">
-          <option value="doubles">Doubles (4)</option>
-          <option value="singles">Singles (2)</option>
-        </select>
-      </label>
+        <BaseSelect
+          label="Format"
+          :model-value="store.state.format"
+          :options="formatOptions"
+          :disabled="store.hasStarted"
+          @change="report(store.setFormat($event as Format))"
+        />
+      </div>
 
       <div class="col-span-2 sm:col-span-1">
         <label class="field-label" for="courtCount">{{ store.sport.venue }}s</label>

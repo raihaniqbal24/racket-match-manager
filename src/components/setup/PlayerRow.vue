@@ -5,6 +5,7 @@ import { hasPlayed } from '../../domain/stats'
 import type { Player } from '../../domain/types'
 import { useSessionStore } from '../../stores/session'
 import AppIcon from '../ui/AppIcon.vue'
+import BaseSelect, { type SelectOption } from '../ui/BaseSelect.vue'
 import StatusBadge from '../ui/StatusBadge.vue'
 import ToggleSwitch from '../ui/ToggleSwitch.vue'
 
@@ -16,18 +17,14 @@ const { report } = useToast()
 
 const isDoubles = computed(() => store.state.format === 'doubles')
 const partner = computed(() => store.state.players.find((p) => p.id === props.player.partnerId))
-const others = computed(() =>
-  store.state.players
+const partnerOptions = computed<SelectOption[]>(() => [
+  { value: '', label: 'None' },
+  ...store.state.players
     .filter((p) => p.id !== props.player.id)
-    .sort((a, b) => a.name.localeCompare(b.name)),
-)
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map((p) => ({ value: p.id, label: p.name })),
+])
 const played = computed(() => hasPlayed(store.state, props.player.id))
-
-function onPartner(e: Event) {
-  const el = e.target as HTMLSelectElement
-  if (!report(store.setPartner(props.player.id, el.value || null)))
-    el.value = props.player.partnerId ?? ''
-}
 </script>
 
 <template>
@@ -76,13 +73,16 @@ function onPartner(e: Event) {
         label="Sitting out"
         @change="report(store.setSittingOut(player.id, $event))"
       />
-      <label v-if="isDoubles" class="flex min-w-48 flex-1 items-center gap-2 text-sm text-muted">
+      <div v-if="isDoubles" class="flex min-w-48 flex-1 items-center gap-2 text-sm text-muted">
         <span class="whitespace-nowrap">Fixed partner</span>
-        <select class="input min-h-9" :value="player.partnerId ?? ''" @change="onPartner">
-          <option value="">None</option>
-          <option v-for="p in others" :key="p.id" :value="p.id">{{ p.name }}</option>
-        </select>
-      </label>
+        <BaseSelect
+          class="min-h-9"
+          label="Fixed partner"
+          :model-value="player.partnerId ?? ''"
+          :options="partnerOptions"
+          @change="report(store.setPartner(player.id, $event || null))"
+        />
+      </div>
       <button class="btn btn-sm btn-danger ml-auto" @click="report(store.removePlayer(player.id), { undo: true })">
         {{ played ? 'Gone home' : 'Remove' }}
       </button>
