@@ -1,0 +1,166 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light;
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --surface-2: #f1f4f7;
+  --border: #e1e6ec;
+  --fg: #15202b;
+  --muted: #627084;
+  --primary: #0f766e;
+  --primary-hover: #0c5f59;
+  --primary-fg: #ffffff;
+  --primary-soft: #e0f3f0;
+  --primary-soft-fg: #0b5a54;
+  --danger: #b42318;
+  --danger-soft: #fdecea;
+
+  --ok-bg: #def5e6;
+  --ok-fg: #17663a;
+  --info-bg: #e2ebff;
+  --info-fg: #2447a6;
+  --pend-bg: #eee7ff;
+  --pend-fg: #5a34b3;
+  --warn-bg: #fff1c7;
+  --warn-fg: #855600;
+  --alert-bg: #ffe0d4;
+  --alert-fg: #a5340f;
+  --off-bg: #e9edf2;
+  --off-fg: #586475;
+}
+
+.dark {
+  color-scheme: dark;
+  --bg: #0e1316;
+  --surface: #161d22;
+  --surface-2: #1d262c;
+  --border: #2a353d;
+  --fg: #e8edf1;
+  --muted: #93a1b0;
+  --primary: #2dd4bf;
+  --primary-hover: #5eead4;
+  --primary-fg: #06231f;
+  --primary-soft: #123a36;
+  --primary-soft-fg: #8cebdc;
+  --danger: #ff8a7a;
+  --danger-soft: #3b1a17;
+
+  --ok-bg: #143523;
+  --ok-fg: #86e0a8;
+  --info-bg: #16284f;
+  --info-fg: #a3bfff;
+  --pend-bg: #2a1f4d;
+  --pend-fg: #c6b1ff;
+  --warn-bg: #3d3008;
+  --warn-fg: #f5cf66;
+  --alert-bg: #47200f;
+  --alert-fg: #ffab8a;
+  --off-bg: #232d34;
+  --off-fg: #9aa7b4;
+}
+
+@theme inline {
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-fg: var(--primary-fg);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-soft-fg: var(--primary-soft-fg);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+}
+
+@layer base {
+  body {
+    @apply bg-bg text-fg font-sans antialiased;
+    margin: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button:not(:disabled),
+  select:not(:disabled),
+  label:has(input[type='checkbox']:not(:disabled)) {
+    cursor: pointer;
+  }
+  :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-border bg-surface p-4 sm:p-5;
+  }
+  .card-title {
+    @apply text-base font-semibold;
+  }
+
+  .btn {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-transparent px-4 text-sm font-semibold whitespace-nowrap transition-colors select-none disabled:cursor-not-allowed disabled:opacity-45;
+  }
+  .btn-sm {
+    @apply min-h-9 rounded-lg px-3 text-[13px];
+  }
+  .btn-primary {
+    @apply bg-primary text-primary-fg hover:not-disabled:bg-primary-hover;
+  }
+  .btn-secondary {
+    @apply bg-primary-soft text-primary-soft-fg hover:not-disabled:brightness-95 dark:hover:not-disabled:brightness-125;
+  }
+  .btn-ghost {
+    @apply border-border bg-transparent text-fg hover:not-disabled:bg-surface-2;
+  }
+  .btn-danger {
+    @apply border-border bg-transparent text-danger hover:not-disabled:bg-danger-soft;
+  }
+  .btn-icon {
+    @apply inline-flex size-11 items-center justify-center rounded-xl text-muted transition-colors hover:not-disabled:bg-surface-2 hover:not-disabled:text-fg disabled:opacity-35;
+  }
+
+  .field-label {
+    @apply mb-1.5 block text-xs font-semibold text-muted;
+  }
+  .input {
+    @apply block min-h-11 w-full rounded-xl border border-border bg-surface px-3 text-sm text-fg outline-none placeholder:text-muted focus:border-primary disabled:opacity-60;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap;
+    background: var(--off-bg);
+    color: var(--off-fg);
+  }
+  .badge-ready {
+    background: var(--ok-bg);
+    color: var(--ok-fg);
+  }
+  .badge-playing {
+    background: var(--info-bg);
+    color: var(--info-fg);
+  }
+  .badge-pending {
+    background: var(--pend-bg);
+    color: var(--pend-fg);
+  }
+  .badge-warning,
+  .badge-partner {
+    background: var(--warn-bg);
+    color: var(--warn-fg);
+  }
+  .badge-alert {
+    background: var(--alert-bg);
+    color: var(--alert-fg);
+  }
+
+  .empty {
+    @apply rounded-xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted;
+  }
+}
