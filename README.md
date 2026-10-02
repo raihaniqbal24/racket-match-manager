@@ -17,6 +17,7 @@ A Vue 3 rewrite of [Tennis Match Manager](https://github.com/raihaniqbal24/tenni
 - **Export / import** the session as a JSON file. Saves from Tennis Match Manager import too.
 - **New session, same players** — clear the matches but keep the roster and fixed pairs.
 - Bulk-add players from a comma- or line-separated list.
+- Built-in "How it works" guide, shown on first visit and available from the menu.
 - Light and dark themes, phone-first layout.
 
 ## Development

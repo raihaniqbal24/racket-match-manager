@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import HelpPanel from './components/HelpPanel.vue'
 import AppIcon, { type IconName } from './components/ui/AppIcon.vue'
 import BaseDialog from './components/ui/BaseDialog.vue'
 import ToastHost from './components/ui/ToastHost.vue'
@@ -28,6 +29,33 @@ const tab = ref<Tab>(store.hasStarted || store.hasPending ? 'courts' : 'players'
 const menuOpen = ref(false)
 const newSessionOpen = ref(false)
 const fileInput = ref<HTMLInputElement>()
+
+const HELP_SEEN_KEY = 'racket-match-manager:help-seen'
+
+function helpSeen(): boolean {
+  try {
+    return localStorage.getItem(HELP_SEEN_KEY) === '1'
+  } catch {
+    return true
+  }
+}
+
+// First visit: show the guide once, unless a session already exists.
+const helpOpen = ref(!helpSeen() && !store.state.players.length)
+
+function openHelp() {
+  menuOpen.value = false
+  helpOpen.value = true
+}
+
+function closeHelp() {
+  helpOpen.value = false
+  try {
+    localStorage.setItem(HELP_SEEN_KEY, '1')
+  } catch {
+    // The guide will just show again next visit.
+  }
+}
 
 const savedAt = computed(() =>
   store.lastSaved
@@ -111,6 +139,9 @@ function newSession(keepPlayers: boolean) {
         >
           <AppIcon :name="dark ? 'sun' : 'moon'" />
         </button>
+        <button class="btn-icon max-sm:hidden" aria-label="How it works" title="How it works" @click="openHelp">
+          <AppIcon name="help" />
+        </button>
         <div class="relative">
           <button
             class="btn-icon"
@@ -128,6 +159,10 @@ function newSession(keepPlayers: boolean) {
               role="menu"
               @keydown.esc="menuOpen = false"
             >
+              <button class="menu-item" role="menuitem" @click="openHelp">
+                <AppIcon name="help" :size="16" />
+                How it works
+              </button>
               <button class="menu-item" role="menuitem" @click="exportSession">
                 <AppIcon name="download" :size="16" />
                 Export session
@@ -188,6 +223,8 @@ function newSession(keepPlayers: boolean) {
         <button class="btn btn-sm text-muted" @click="newSessionOpen = false">Cancel</button>
       </div>
     </BaseDialog>
+
+    <HelpPanel v-if="helpOpen" @close="closeHelp" />
 
     <ToastHost />
   </div>
