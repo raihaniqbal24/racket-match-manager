@@ -36,6 +36,8 @@ npm run dev
 
 The build uses a relative base path, so `dist/` can be served from any folder (for example GitHub Pages).
 
+Pushes to `master` deploy automatically to https://racket-match-manager.raihaniqbal24.com; see [DEPLOY.md](DEPLOY.md) for the one-time VPS setup.
+
 ## Structure
 
 ```
