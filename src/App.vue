@@ -31,6 +31,7 @@ const newSessionOpen = ref(false)
 const fileInput = ref<HTMLInputElement>()
 
 const HELP_SEEN_KEY = 'racket-match-manager:help-seen'
+const MAX_IMPORT_BYTES = 5 * 1024 * 1024
 
 function helpSeen(): boolean {
   try {
@@ -88,6 +89,12 @@ async function onImport(e: Event) {
   const file = input.files?.[0]
   input.value = ''
   if (!file) return
+  // A real session export is a few hundred KB at most; refuse anything huge
+  // rather than freezing the tab parsing it.
+  if (file.size > MAX_IMPORT_BYTES) {
+    show("That file is too large to be a saved session.")
+    return
+  }
   try {
     if (report(store.importJson(await file.text()), { undo: true })) tab.value = 'courts'
   } catch {

@@ -1,0 +1,20 @@
+# Weekly PRs that bump the SHA-pinned actions in deploy.yml and npm packages.
+# Merging one pushes to master, so it runs the tests and deploys like any other push.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      npm:
+        patterns: ["*"]
+    open-pull-requests-limit: 5

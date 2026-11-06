@@ -2,7 +2,7 @@ import { ref } from 'vue'
 
 const KEY = 'racket-match-manager:theme'
 
-// index.html applies a saved dark choice before first paint; read it back.
+// public/theme-init.js applies a saved dark choice before first paint; read it back.
 const dark = ref(document.documentElement.classList.contains('dark'))
 
 function toggle() {

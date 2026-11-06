@@ -100,6 +100,17 @@ function isRecord(v: unknown): v is Record<string, any> {
   return typeof v === 'object' && v !== null && !Array.isArray(v)
 }
 
+// Timestamps are ISO strings; older saves may hold epoch numbers. Anything else
+// (objects, arrays, out-of-range numbers) becomes null instead of passing through.
+function normalizeTime(raw: unknown): string | null {
+  if (typeof raw === 'string') return raw
+  if (typeof raw === 'number') {
+    const d = new Date(raw)
+    return Number.isNaN(d.getTime()) ? null : d.toISOString()
+  }
+  return null
+}
+
 function normalizeScore(raw: unknown): Score | null {
   if (!isRecord(raw)) return null
   const a = Number(raw.a),
@@ -120,8 +131,8 @@ function normalizeHistory(raw: unknown): MatchRecord[] {
       courtName: String(m.courtName ?? ''),
       roundNumber: Number(m.roundNumber) || 0,
       players: m.players.map(String),
-      startedAt: m.startedAt ?? null,
-      completedAt: m.completedAt ?? new Date().toISOString(),
+      startedAt: normalizeTime(m.startedAt),
+      completedAt: normalizeTime(m.completedAt) ?? new Date().toISOString(),
       score: normalizeScore(m.score),
     }))
 }
@@ -154,9 +165,9 @@ function normalizeCourts(raw: unknown): Court[] {
       court: Number(c.court),
       status: c.status === 'playing' || c.status === 'pending' ? c.status : 'idle',
       players: Array.isArray(c.players) ? c.players.map(String) : [],
-      matchId: c.matchId ?? null,
-      startedAt: c.startedAt ?? null,
-      roundNumber: c.roundNumber ?? null,
+      matchId: c.matchId == null ? null : String(c.matchId),
+      startedAt: normalizeTime(c.startedAt),
+      roundNumber: c.roundNumber == null ? null : Number(c.roundNumber) || null,
     }))
 }
 

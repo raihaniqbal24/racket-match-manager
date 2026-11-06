@@ -6,13 +6,8 @@
     <meta name="theme-color" content="#0f766e" />
     <title>Racket Match Manager</title>
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-    <script>
-      // Light by default; apply a saved dark choice before first paint to avoid a flash.
-      try {
-        if (localStorage.getItem('racket-match-manager:theme') === 'dark')
-          document.documentElement.classList.add('dark')
-      } catch (e) {}
-    </script>
+    <!-- Blocking on purpose: applies a saved dark theme before first paint. -->
+    <script src="./theme-init.js"></script>
   </head>
   <body>
     <div id="app"></div>

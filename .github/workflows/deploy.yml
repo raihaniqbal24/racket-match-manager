@@ -5,21 +5,27 @@ on:
     branches: [master]
   workflow_dispatch:
 
+# The job only needs to read the repo; deny everything else to GITHUB_TOKEN.
+permissions:
+  contents: read
+
 # Never run two deploys at once; a newer push cancels an older one.
 concurrency:
   group: deploy
   cancel-in-progress: true
 
-env:
-  DEPLOY_PATH: /var/www/racket-match-manager
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Secrets live in this environment; add required reviewers or branch rules there if wanted.
+    environment: production
     steps:
-      - uses: actions/checkout@v5
+      # Actions are pinned to full commit SHAs (tags can be moved); the comment is the tag.
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: 24
           cache: npm
@@ -29,14 +35,41 @@ jobs:
       - run: npm run build
 
       - name: Set up SSH
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          echo "${{ secrets.VPS_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
 
+      # The deploy key must be locked to rrsync on the VPS (DEPLOY.md, step 3). If it can
+      # still run an arbitrary command, stop: the "/" target below would then mean the
+      # server's real root, and a leaked key would be a full shell.
+      - name: Check the deploy key is restricted to rrsync
+        env:
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT || '22' }}
+        run: |
+          if ssh -i ~/.ssh/deploy_key -p "$VPS_PORT" -o BatchMode=yes \
+               "$VPS_USER@$VPS_HOST" true 2>/dev/null; then
+            echo "::error::The deploy key can run shell commands. Restrict it with rrsync (see DEPLOY.md, step 3) before deploying."
+            exit 1
+          fi
+
+      # rrsync maps "/" to /var/www/racket-match-manager on the server.
       - name: Upload dist/ to the VPS
+        env:
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT || '22' }}
         run: |
           rsync -az --delete \
-            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.VPS_PORT || 22 }}" \
-            dist/ "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${DEPLOY_PATH}/"
+            -e "ssh -i $HOME/.ssh/deploy_key -p $VPS_PORT -o BatchMode=yes" \
+            dist/ "$VPS_USER@$VPS_HOST:/"
+
+      - name: Remove the key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
