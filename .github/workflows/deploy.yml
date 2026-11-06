@@ -52,12 +52,16 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_PORT: ${{ secrets.VPS_PORT || '22' }}
+        # Not "true": rrsync deliberately lets exactly that through as a connectivity check.
+        # Any other command is refused by rrsync, so the marker only comes back from a real shell.
         run: |
-          if ssh -i ~/.ssh/deploy_key -p "$VPS_PORT" -o BatchMode=yes \
-               "$VPS_USER@$VPS_HOST" true 2>/dev/null; then
+          out=$(ssh -i ~/.ssh/deploy_key -p "$VPS_PORT" -o BatchMode=yes \
+                  "$VPS_USER@$VPS_HOST" 'echo shell-access' 2>/dev/null || true)
+          if [ "$out" = "shell-access" ]; then
             echo "::error::The deploy key can run shell commands. Restrict it with rrsync (see DEPLOY.md, step 3) before deploying."
             exit 1
           fi
+          echo "Deploy key is restricted (shell commands are refused)."
 
       # rrsync maps "/" to /var/www/racket-match-manager on the server.
       - name: Upload dist/ to the VPS
